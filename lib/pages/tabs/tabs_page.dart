@@ -66,7 +66,7 @@ class TabsPageState extends State<TabsPage> {
       activeMarkerInstantValue = circle.radius;
     });
   }
-  // TODO: change marker color on active
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
