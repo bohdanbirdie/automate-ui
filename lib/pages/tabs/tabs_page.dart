@@ -39,10 +39,12 @@ class TabsPageState extends State<TabsPage> {
     final Marker marker = Marker(
       markerId: markerId,
       position: latlng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(100),
       onTap: () {
         setState(() {
           activeMarker = markerIdVal;
           activeMarkerInstantValue = circles[markerIdVal].radius;
+          markers[activeMarker] = markers[activeMarker].copyWith(iconParam: BitmapDescriptor.defaultMarkerWithHue(100));
         });
       },
     );
@@ -64,7 +66,7 @@ class TabsPageState extends State<TabsPage> {
       activeMarkerInstantValue = circle.radius;
     });
   }
-
+  // TODO: change marker color on active
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -81,6 +83,7 @@ class TabsPageState extends State<TabsPage> {
             onLongPress: _add,
             onTap: (_) {
               setState(() {
+                markers[activeMarker] = markers[activeMarker].copyWith(iconParam: BitmapDescriptor.defaultMarker);
                 activeMarker = null;
                 activeMarkerInstantValue = null;
               });
