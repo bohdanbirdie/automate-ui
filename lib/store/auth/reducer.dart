@@ -1,13 +1,15 @@
 import 'dart:convert';
 
 import 'package:automate_ui/helpers/network_state.dart';
+import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
 import 'package:http/http.dart';
 import 'package:redux/redux.dart';
 
-Client http = new HttpService();
+final HttpService httpService = new HttpService();
+final AuthService authService = new AuthService();
 
 class AuthState {
   final String userToken;
@@ -45,13 +47,14 @@ void loginUserAction(Store<AppState> store, String username, String password) as
 
   try {
     var url = 'http://localhost:3000/auth/login';
-    var response = await http.post(url, body: { 'username': username, 'password': password });
+    Response response = await httpService.post(url, body: { 'username': username, 'password': password });
 
     if (response.statusCode != 201 ) {      
       throw new Exception('Failed to login');
     }
 
     Map<String, dynamic> user = jsonDecode(response.body);
+    authService.saveSession(user['access_token']);
 
     store.dispatch(LoginRequestSuccess(user['access_token']));
     store.dispatch(NavigateToAction.replace('/tabs'));

@@ -1,4 +1,5 @@
 import 'package:automate_ui/helpers/network_state.dart';
+import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/store/auth/reducer.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +20,26 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final AuthService authService = new AuthService();
   final _formKey = GlobalKey<FormState>();
   String _username;
   String _password;
+
+  void _validateSession() async {
+    bool isValid = await authService.validateSession();
+    if (isValid) {
+      Future.delayed(Duration(milliseconds: 100)).then((_) {
+        Navigator.pushReplacementNamed(context, '/tabs');
+      });
+    }
+  }
+
+  @override
+  initState() {
+    super.initState();
+    
+    _validateSession();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         if (form.validate()) {
                           form.save();
-                          print('$_password $_username');
+
                           viewModel.onLogin(_username, _password);
                         }
                       },

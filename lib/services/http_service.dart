@@ -18,8 +18,9 @@ class HttpService extends http.BaseClient{
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     if (HttpService.store != null) {
-      print('Store passed');
-      request.headers.addAll({ 'Authorization': HttpService.store.state.auth.userToken});
+      if (HttpService.store.state.auth.userToken != '') {
+        request.headers.addAll({ 'Authorization': 'Bearer $HttpService.store.state.auth.userToken'});
+      }
     }
     return _httpClient.send(request);
   }
