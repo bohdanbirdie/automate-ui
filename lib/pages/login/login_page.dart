@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   initState() {
     super.initState();
-    
+
     _validateSession();
   }
 
@@ -45,9 +45,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return new StoreConnector<AppState, _LoginPageViewModel>(
       converter: (store) {
-        // return () => loginUserAction(store);
         return _LoginPageViewModel(
-            onLogin: (String username, String password) => loginUserAction(store, username, password),
+            onLogin: (String username, String password) =>
+                loginUserAction(store, username, password),
             authNetwork: store.state.auth.network);
       },
       builder: (context, viewModel) {
@@ -61,7 +61,10 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Container(child: viewModel.authNetwork.error ? Text(viewModel.authNetwork.errorMessage) : null),
+                  Container(
+                      child: viewModel.authNetwork.error
+                          ? Text(viewModel.authNetwork.errorMessage)
+                          : null),
                   TextFormField(
                     decoration: InputDecoration(hintText: "Username"),
                     onSaved: (val) => _username = val,
@@ -86,18 +89,20 @@ class _LoginPageState extends State<LoginPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
                     child: RaisedButton(
+                      onPressed: viewModel.authNetwork.loading
+                          ? null
+                          : () {
+                              final FormState form = _formKey.currentState;
 
-                      onPressed: viewModel.authNetwork.loading ? null : () {
-                        final FormState form = _formKey.currentState;
+                              if (form.validate()) {
+                                form.save();
 
-                        if (form.validate()) {
-                          form.save();
-
-                          viewModel.onLogin(_username, _password);
-                        }
-                      },
-                      child:
-                          viewModel.authNetwork.loading ? Text('Loading') : Text('Submit'),
+                                viewModel.onLogin(_username, _password);
+                              }
+                            },
+                      child: viewModel.authNetwork.loading
+                          ? Text('Loading')
+                          : Text('Submit'),
                     ),
                   ),
                 ],

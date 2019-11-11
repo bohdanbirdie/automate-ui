@@ -1,7 +1,11 @@
 import 'dart:async';
-
-import 'package:automate_ui/helpers/debouncer.dart';
+import 'package:quiver/core.dart';
+import 'package:automate_ui/helpers/network_state.dart';
+import 'package:automate_ui/store/root_reducer.dart';
+import 'package:automate_ui/store/zones/reducer.dart';
+import 'package:automate_ui/widgets/new_location_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,174 +18,159 @@ class TabsPage extends StatefulWidget {
 
 class TabsPageState extends State<TabsPage> {
   Completer<GoogleMapController> _controller = Completer();
-  Map<String, Marker> markers = <String, Marker>{};
-  Map<String, Circle> circles = <String, Circle>{};
-  String activeMarker;
-  double activeMarkerInstantValue;
+  String zoneName;
 
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
 
-  static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
-
-  void _add(LatLng latlng) {
+  void _add(LatLng latlng, _MapPageViewModel viewModel) {
+    _centerToLocation(latlng);
     String markerIdVal = uuid.v4();
-    final MarkerId markerId = MarkerId(markerIdVal);
-    final CircleId circleId = CircleId(markerIdVal);
-
-    // creating a new MARKER
-    final Marker marker = Marker(
-      markerId: markerId,
-      position: latlng,
-      icon: BitmapDescriptor.defaultMarkerWithHue(100),
-      onTap: () {
-        setState(() {
-          activeMarker = markerIdVal;
-          activeMarkerInstantValue = circles[markerIdVal].radius;
-          markers[activeMarker] = markers[activeMarker].copyWith(iconParam: BitmapDescriptor.defaultMarkerWithHue(100));
-        });
-      },
-    );
-
-    final Circle circle = Circle(
-      circleId: circleId,
-      strokeWidth: 1,
-      strokeColor: Colors.blue.withOpacity(0.6),
-      fillColor: Colors.blue.withOpacity(0.2),
-      center: latlng,
-      radius: 300,
-    );
-
-    setState(() {
-      // adding a new marker to map
-      circles[markerIdVal] = circle;
-      markers[markerIdVal] = marker;
-      activeMarker = markerIdVal;
-      activeMarkerInstantValue = circle.radius;
-    });
+    viewModel.onAddZone(latlng, 300, '', markerIdVal);
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: AppBar(
-        title: Text("Tabs"),
-      ),
-      body: Stack(
-        alignment: Alignment.bottomCenter,
-        children: <Widget>[
-          GoogleMap(
-            mapType: MapType.normal,
-            initialCameraPosition: _kGooglePlex,
-            myLocationEnabled: true,
-            onLongPress: _add,
-            onTap: (_) {
-              setState(() {
-                markers[activeMarker] = markers[activeMarker].copyWith(iconParam: BitmapDescriptor.defaultMarker);
-                activeMarker = null;
-                activeMarkerInstantValue = null;
-              });
-            },
-            onMapCreated: (GoogleMapController controller) {
-              _controller.complete(controller);
-            },
-            markers: Set<Marker>.of(markers.values),
-            circles: Set<Circle>.of(circles.values),
+    return new StoreConnector<AppState, _MapPageViewModel>(
+      distinct: true,
+      converter: (store) {
+        Map<String, Marker> markers = store.state.zones.zones.map((_, entry) {
+          return MapEntry(
+              _,
+              Marker(
+                markerId: MarkerId(entry.uiId),
+                position: entry.location,
+                icon: entry.uiId == store.state.zones.activeMarkerUiId
+                    ? BitmapDescriptor.defaultMarkerWithHue(100)
+                    : BitmapDescriptor.defaultMarker,
+              ));
+        });
+
+
+        Map<String, Circle> circles = store.state.zones.zones.map((_, entry) {
+          return MapEntry(
+              _,
+              Circle(
+                circleId: CircleId(entry.uiId),
+                strokeWidth: 1,
+                strokeColor: Colors.blue.withOpacity(0.6),
+                fillColor: Colors.blue.withOpacity(0.2),
+                center: entry.location,
+                radius: entry.radius,
+              ));
+        });
+
+        return _MapPageViewModel(
+            activeMarkerUiId: store.state.zones.activeMarkerUiId,
+            markers: markers,
+            circles: circles,
+            onEditZone: (double radius) =>
+                store.dispatch(EditActiveZone(radius: radius)),
+            onCancelAddingZone: (String uiId) =>
+                store.dispatch(RemoveActiveZone(uiId: uiId)),
+            onAddZone: ((LatLng location, double radius, String identifier,
+                    String uiId) =>
+                store.dispatch(AddActiveZone(
+                    identifier: identifier,
+                    location: location,
+                    radius: radius,
+                    uiId: uiId))),
+            zonesNetwork: store.state.zones.network);
+      },
+      builder: (context, viewModel) {
+        return new Scaffold(
+          appBar: AppBar(
+            title: Text("Tabs"),
           ),
-          _renderSlider()
-        ],
-      ),
+          body: Stack(
+            alignment: Alignment.bottomCenter,
+            children: <Widget>[
+              Container(
+                height: MediaQuery.of(context).size.height,
+                child: GoogleMap(
+                  mapType: MapType.normal,
+                  initialCameraPosition: _kGooglePlex,
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: false,
+                  onLongPress: (e) => _add(e, viewModel),
+                  onMapCreated: (GoogleMapController controller) {
+                    _controller.complete(controller);
+                  },
+                  markers: Set<Marker>.of(viewModel.markers.values),
+                  circles: Set<Circle>.of(viewModel.circles.values),
+                ),
+              ),
+              _renderSlider(viewModel)
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _renderSlider() {
-    if (activeMarker != null) {
-      return Container(
-        margin: EdgeInsets.only(bottom: 40),
-        decoration: new BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.6),
-              blurRadius: 10.0,
-              spreadRadius: 1.0,
-              offset: Offset(5.0, 5.0),
-            )
-          ],
-          borderRadius: new BorderRadius.circular(15.0),
-        ),
-        width: MediaQuery.of(context).size.width * 0.80,
-        height: 50,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Slider(
-              activeColor: Colors.indigoAccent,
-              label: circles[activeMarker].radius.toString(),
-              min: 0,
-              max: 1.0,
-              onChangeEnd: (newRating) {
-                setState(() => circles[activeMarker] = circles[activeMarker]
-                    .copyWith(radiusParam: newRating * 1000));
-              },
-              onChanged: (newRating) {
-                setState(() => activeMarkerInstantValue = newRating * 1000);
-              },
-              value: activeMarkerInstantValue / 1000,
-            ),
-            Padding(
-              child: Text(
-                activeMarkerInstantValue.toInt().toString(),
-                style: TextStyle(
-                  color: Colors.indigoAccent,
-                ),
-              ),
-              padding: EdgeInsets.only(right: 10),
-            ),
-            SizedBox(
-                width: 65,
-                child: ClipRRect(
-                    borderRadius: new BorderRadius.only(
-                        topRight: Radius.circular(15),
-                        bottomRight: Radius.circular(15)),
-                    child: RaisedButton(
-                      padding: EdgeInsets.all(0),
-                      onPressed: () {
-                        setState(() {
-                          circles.remove(activeMarker);
-                          markers.remove(activeMarker);
-                          activeMarker = null;
-                          activeMarkerInstantValue = null;
-                        });
-                      },
-                      child: Container(
-                        height: double.infinity,
-                        width: double.infinity,
-                        decoration:
-                            new BoxDecoration(color: Colors.indigoAccent),
-                        child: Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                          size: 30.0,
-                        ),
-                      ),
-                    ))),
-          ],
-        ),
+  Widget _renderSlider(_MapPageViewModel viewModel) {
+    if (viewModel.activeMarkerUiId != null) {
+      return NewLocationDialog(
+        radius: viewModel.circles[viewModel.activeMarkerUiId].radius,
+        onChangeEnd: (newRating) {
+          viewModel.onEditZone(newRating);
+        },
+        onSave: (saveData) {
+          setState(() {
+            print("saved");
+          });
+        },
+        onBackgropClick: () {
+          viewModel.onCancelAddingZone(viewModel.activeMarkerUiId);
+        },
       );
     }
     return Container();
   }
 
-  Future<void> _goToTheLake() async {
+  Future<void> _centerToLocation(LatLng latLng) async {
     final GoogleMapController controller = await _controller.future;
 
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+    controller.animateCamera(CameraUpdate.newLatLng(latLng));
   }
+}
+
+class _MapPageViewModel {
+  final Map<String, Marker> markers;
+  final Map<String, Circle> circles;
+  final String activeMarkerUiId;
+  final NetworkState zonesNetwork;
+  final Function(String uiId) onCancelAddingZone;
+  final Function(double radius) onEditZone;
+  final Function(
+    LatLng location,
+    double radius,
+    String identifier,
+    String uiId,
+  ) onAddZone;
+
+  _MapPageViewModel(
+      {@required this.onAddZone,
+      @required this.onEditZone,
+      @required this.onCancelAddingZone,
+      @required this.zonesNetwork,
+      @required this.circles,
+      @required this.markers,
+      @required this.activeMarkerUiId});
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other.runtimeType != runtimeType) return false;
+    final _MapPageViewModel typedOther = other;
+    return markers.hashCode == typedOther.markers.hashCode &&
+        activeMarkerUiId == typedOther.activeMarkerUiId &&
+        zonesNetwork.hashCode == typedOther.zonesNetwork.hashCode;
+  }
+
+  @override
+  int get hashCode => hash4(this.markers.hashCode, this.markers.hashCode,
+      this.activeMarkerUiId.hashCode, this.zonesNetwork.hashCode);
 }

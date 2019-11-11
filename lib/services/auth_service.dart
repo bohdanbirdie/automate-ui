@@ -21,7 +21,7 @@ class AuthService {
 
     if (token != null) {
       try {
-        Response response = await httpService.get('http://localhost:3000/profile', headers: { 'Authorization': 'Bearer $token'});
+        Response response = await httpService.get('http://localhost:3000/users/profile', headers: { 'Authorization': 'Bearer $token'});
 
         if (response.statusCode != 200) {
           throw Exception();
