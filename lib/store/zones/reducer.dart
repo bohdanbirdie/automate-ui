@@ -20,7 +20,7 @@ class Zone extends bg.Geofence {
   final String uiId;
 
   Zone(
-      {@required String identifier,
+      {String identifier = '',
       @required double radius,
       @required double latitude,
       @required double longitude,
@@ -73,9 +73,9 @@ class ZonesState {
 
 class SaveZoneRequest {}
 
-class LoginRequestSuccess {}
+class SaveZoneSuccess {}
 
-class LoginRequestFailure {}
+class SaveZoneFailure {}
 
 class AddActiveZone {
   final LatLng location;
@@ -109,38 +109,43 @@ class RemoveActiveZone {
 
 void saveZoneRequest(
   Store<AppState> store,
+  String identifier
 ) async {
+  String activeMarkerUiId = store.state.zones.activeMarkerUiId;
+  Zone activeZone = store.state.zones.zones[activeMarkerUiId];
   store.dispatch(SaveZoneRequest());
+  activeZone.identifier = identifier;
 
-  // try {
-  //   var url = 'http://localhost:3000/auth/login';
-  //   Response response = await httpService
-  //       .post(url, body: {'username': username, 'password': password});
+  String body = json.encode(activeZone.toMap()); 
 
-  //   if (response.statusCode != 201) {
-  //     throw new Exception('Failed to login');
-  //   }
+  try {
+    var url = 'http://localhost:3000/users/zone';
+    Response response = await httpService
+        .post(url, body: body, headers: {'Content-type' : 'application/json'});
 
-  //   Map<String, dynamic> user = jsonDecode(response.body);
-  //   authService.saveSession(user['access_token']);
+    
+    if (response.statusCode != 201) {
+      throw new Exception('Failed to save');
+    }
 
-  //   store.dispatch(LoginRequestSuccess(user['access_token']));
-  //   store.dispatch(NavigateToAction.replace('/tabs'));
-  // } on Exception catch (e) {
-  //   store.dispatch(LoginRequestFailure(e.toString()));
-  // }
+    store.dispatch(SaveZoneSuccess());
+
+  } on Exception catch (e) {
+    store.dispatch(SaveZoneFailure());
+  }
 }
 
 ZonesState zonesReducer(ZonesState state, action) {
   switch (action.runtimeType) {
     case SaveZoneRequest:
-      return state.clone(network: NetworkState.request());
+      
+      return state.clone(network: NetworkState.request(), activeMarkerUiId: state.activeMarkerUiId);
 
-    case LoginRequestSuccess:
-      return state.clone(network: NetworkState.success());
+    case SaveZoneSuccess:
+      return state.clone(network: NetworkState.success(),);
 
-    case LoginRequestFailure:
-      return state.clone(network: NetworkState.failure(errorMessage: ''));
+    case SaveZoneFailure:
+      return state.clone(network: NetworkState.failure(errorMessage: ''), activeMarkerUiId: state.activeMarkerUiId);
 
     case AddActiveZone:
       Map<String, Zone> newZones = Map<String, Zone>.from(state.zones);

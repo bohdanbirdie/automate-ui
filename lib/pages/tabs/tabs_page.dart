@@ -19,6 +19,7 @@ class TabsPage extends StatefulWidget {
 class TabsPageState extends State<TabsPage> {
   Completer<GoogleMapController> _controller = Completer();
   String zoneName;
+  bool dialogState = false;
 
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
@@ -31,10 +32,47 @@ class TabsPageState extends State<TabsPage> {
     viewModel.onAddZone(latlng, 300, '', markerIdVal);
   }
 
+  void _onLoading() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+            child: Container(
+          height: 100,
+          child: new Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              new CircularProgressIndicator(),
+              new Text("Loading"),
+            ],
+          ),
+        ));
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return new StoreConnector<AppState, _MapPageViewModel>(
       distinct: true,
+      onWillChange: (viewModel) {
+        if (viewModel.zonesNetwork.loading && !dialogState) {
+          _onLoading();
+          setState(() {
+            dialogState = true;
+          });
+        } else {
+          if (dialogState) {
+            try {
+              Navigator.pop(context);
+              setState(() {
+                dialogState = false;
+              });
+            } catch (e) {}
+          }
+        }
+      },
       converter: (store) {
         Map<String, Marker> markers = store.state.zones.zones.map((_, entry) {
           return MapEntry(
@@ -47,7 +85,6 @@ class TabsPageState extends State<TabsPage> {
                     : BitmapDescriptor.defaultMarker,
               ));
         });
-
 
         Map<String, Circle> circles = store.state.zones.zones.map((_, entry) {
           return MapEntry(
@@ -66,6 +103,8 @@ class TabsPageState extends State<TabsPage> {
             activeMarkerUiId: store.state.zones.activeMarkerUiId,
             markers: markers,
             circles: circles,
+            saveZoneRequest: (String identifier) =>
+                saveZoneRequest(store, identifier),
             onEditZone: (double radius) =>
                 store.dispatch(EditActiveZone(radius: radius)),
             onCancelAddingZone: (String uiId) =>
@@ -120,9 +159,11 @@ class TabsPageState extends State<TabsPage> {
         onSave: (saveData) {
           setState(() {
             print("saved");
+            viewModel.saveZoneRequest(saveData.zoneName);
           });
         },
         onBackgropClick: () {
+          print('onBackgropClick');
           viewModel.onCancelAddingZone(viewModel.activeMarkerUiId);
         },
       );
@@ -143,6 +184,7 @@ class _MapPageViewModel {
   final String activeMarkerUiId;
   final NetworkState zonesNetwork;
   final Function(String uiId) onCancelAddingZone;
+  final Function(String identifier) saveZoneRequest;
   final Function(double radius) onEditZone;
   final Function(
     LatLng location,
@@ -154,6 +196,7 @@ class _MapPageViewModel {
   _MapPageViewModel(
       {@required this.onAddZone,
       @required this.onEditZone,
+      @required this.saveZoneRequest,
       @required this.onCancelAddingZone,
       @required this.zonesNetwork,
       @required this.circles,

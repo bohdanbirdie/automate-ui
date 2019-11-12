@@ -15,7 +15,7 @@ class AuthState {
   final String userToken;
   final NetworkState network;
 
-  const AuthState({ this.userToken = '', this.network = const NetworkState() });
+  const AuthState({ this.userToken, this.network = const NetworkState() });
 
   AuthState clone({ String userToken, NetworkState network }) {
     userToken = userToken ?? this.userToken;

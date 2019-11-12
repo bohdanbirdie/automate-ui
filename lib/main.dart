@@ -1,5 +1,6 @@
 import 'package:automate_ui/pages/login/login_page.dart';
 import 'package:automate_ui/pages/tabs/tabs_page.dart';
+import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,7 @@ void main() {
       ]);
 
   HttpService.store = store;
+  AuthService.store = store;
 
   runApp(new ConnectedApp(
       store: store,

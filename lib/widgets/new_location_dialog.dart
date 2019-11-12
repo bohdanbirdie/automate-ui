@@ -38,7 +38,7 @@ class _NewLocationDialogState extends State<NewLocationDialog> {
             actions: <Widget>[
               FlatButton(
                   onPressed: () {
-                   Navigator.pop(context);
+                    Navigator.pop(context);
                   },
                   child: Text('Cancel')),
               FlatButton(
@@ -62,7 +62,7 @@ class _NewLocationDialogState extends State<NewLocationDialog> {
         },
         child: Container(
             alignment: Alignment.bottomCenter,
-            // color: Colors.white10.withOpacity(0.4),
+            color: Colors.white10.withOpacity(0),
             child: Container(
               width: MediaQuery.of(context).size.width * 0.80,
               height: 100,
@@ -150,7 +150,11 @@ class _NewLocationDialogState extends State<NewLocationDialog> {
                                           vertical: 10, horizontal: 5),
                                       // errorBorder:
                                     ),
-                                    onSaved: (val) => _zoneName = val,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _zoneName = val;
+                                      });
+                                    },
                                     validator: (value) {
                                       if (value.isEmpty) {
                                         return '';
@@ -176,12 +180,13 @@ class _NewLocationDialogState extends State<NewLocationDialog> {
                             padding: EdgeInsets.all(0),
                             onPressed: () {
                               final FormState form = _formKey.currentState;
-
                               if (form.validate()) {
                                 form.save();
 
                                 // viewModel.onLogin(_username, _password);
-                                widget.onSave(_SaveData(radius: _instantRadiusValue, zoneName: _zoneName));
+                                widget.onSave(_SaveData(
+                                    radius: _instantRadiusValue,
+                                    zoneName: _zoneName));
                               }
                             },
                             child: Container(
