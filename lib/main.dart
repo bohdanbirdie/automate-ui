@@ -1,3 +1,4 @@
+import 'package:automate_ui/helpers/constants.dart';
 import 'package:automate_ui/pages/login/login_page.dart';
 import 'package:automate_ui/pages/tabs/tabs_page.dart';
 import 'package:automate_ui/services/auth_service.dart';
@@ -64,7 +65,7 @@ class _ConnectedAppState extends State<ConnectedApp> {
             geofenceInitialTriggerEntry: false,
             stopOnTerminate: false,
             startOnBoot: true,
-            url: 'http://localhost:3000/location',
+            url: '${hostname}location',
             autoSync: true,
             // httpMethod: 'POST',
             debug: false,

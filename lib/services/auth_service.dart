@@ -1,3 +1,4 @@
+import 'package:automate_ui/helpers/constants.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/auth/reducer.dart';
 import 'package:automate_ui/store/root_reducer.dart';
@@ -25,7 +26,7 @@ class AuthService {
 
     if (token != null) {
       try {
-        Response response = await httpService.get('http://localhost:3000/users/profile', headers: { 'Authorization': 'Bearer $token'});
+        Response response = await httpService.get('${hostname}users/profile', headers: { 'Authorization': 'Bearer $token'});
 
         if (response.statusCode != 200) {
           throw Exception();

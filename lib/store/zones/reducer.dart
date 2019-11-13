@@ -1,11 +1,12 @@
 import 'dart:convert';
 
+import 'package:automate_ui/helpers/constants.dart';
 import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
+// import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
 import 'package:redux/redux.dart';
@@ -30,7 +31,7 @@ class Zone extends bg.Geofence {
       bool notifyOnDwell = false,
       int loiteringDelay,
       Map<String, dynamic> extras})
-      : location = new LatLng(latitude, longitude),
+      : this.location = new LatLng(latitude, longitude),
         super(
           identifier: identifier,
           radius: radius,
@@ -77,6 +78,37 @@ class SaveZoneSuccess {}
 
 class SaveZoneFailure {}
 
+
+class GetZonesRequest {}
+
+class GetZonesSuccess {
+  final Map<String, Zone> zones;
+
+  GetZonesSuccess._(this.zones);
+
+  factory GetZonesSuccess(String zonesResponse) {
+    Iterable zonesPayload = jsonDecode(zonesResponse);
+    Iterable<Zone> zones = zonesPayload.map((zone) {
+      try {
+        return new Zone(
+          identifier: zone['identifier'],
+          latitude: double.parse(zone['latitude']),
+          longitude: double.parse(zone['longitude']),
+          radius: double.parse(zone['radius']),
+          uiId: zone['uiId'],
+        );
+      } catch (e) {
+        return null;
+      }
+    }).where((zone) => zone != null);
+
+    return GetZonesSuccess._(Map.fromIterable(zones,
+        key: (zone) => zone.uiId, value: (zone) => zone));
+  }
+}
+
+class GetZonesFailure {}
+
 class AddActiveZone {
   final LatLng location;
   final String identifier;
@@ -107,45 +139,80 @@ class RemoveActiveZone {
   });
 }
 
-void saveZoneRequest(
-  Store<AppState> store,
-  String identifier
-) async {
+void saveZoneRequest(Store<AppState> store, String identifier) async {
   String activeMarkerUiId = store.state.zones.activeMarkerUiId;
   Zone activeZone = store.state.zones.zones[activeMarkerUiId];
   store.dispatch(SaveZoneRequest());
   activeZone.identifier = identifier;
 
-  String body = json.encode(activeZone.toMap()); 
+  String body = json.encode(activeZone.toMap());
 
   try {
-    var url = 'http://localhost:3000/users/zone';
+    var url = '${hostname}users/zone';
     Response response = await httpService
-        .post(url, body: body, headers: {'Content-type' : 'application/json'});
+        .post(url, body: body, headers: {'Content-type': 'application/json'});
 
-    
     if (response.statusCode != 201) {
       throw new Exception('Failed to save');
     }
 
     store.dispatch(SaveZoneSuccess());
-
   } on Exception catch (e) {
     store.dispatch(SaveZoneFailure());
   }
 }
 
+void getZonesRequest(Store<AppState> store) async {
+  store.dispatch(GetZonesRequest());
+
+  try {
+    var url = '${hostname}zones';
+    Response response = await httpService
+        .get(url);
+
+    if (response.statusCode != 200) {
+      throw new Exception('Failed to load zones');
+    }
+
+    store.dispatch(GetZonesSuccess(response.body));
+  } on Exception catch (e) {
+    store.dispatch(GetZonesFailure());
+  }
+}
+
 ZonesState zonesReducer(ZonesState state, action) {
   switch (action.runtimeType) {
+    case GetZonesRequest:
+      return state.clone(
+        network: NetworkState.request()
+      );
+
+    case GetZonesSuccess:
+      print(action.zones.toString());
+      return state.clone(
+        network: NetworkState.success(),
+        zones: action.zones,
+      );
+
+    case GetZonesFailure:
+      return state.clone(
+        network: NetworkState.failure(errorMessage: '')
+      );
+
     case SaveZoneRequest:
-      
-      return state.clone(network: NetworkState.request(), activeMarkerUiId: state.activeMarkerUiId);
+      return state.clone(
+          network: NetworkState.request(),
+          activeMarkerUiId: state.activeMarkerUiId);
 
     case SaveZoneSuccess:
-      return state.clone(network: NetworkState.success(),);
+      return state.clone(
+        network: NetworkState.success(),
+      );
 
     case SaveZoneFailure:
-      return state.clone(network: NetworkState.failure(errorMessage: ''), activeMarkerUiId: state.activeMarkerUiId);
+      return state.clone(
+          network: NetworkState.failure(errorMessage: ''),
+          activeMarkerUiId: state.activeMarkerUiId);
 
     case AddActiveZone:
       Map<String, Zone> newZones = Map<String, Zone>.from(state.zones);
