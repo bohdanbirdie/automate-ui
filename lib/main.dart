@@ -4,11 +4,13 @@ import 'package:automate_ui/pages/tabs/tabs_page.dart';
 import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
+import 'package:dio_flutter_transformer/dio_flutter_transformer.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:flutter_background_geolocation/flutter_background_geolocation.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+import 'package:redux_logging/redux_logging.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
 
@@ -18,23 +20,17 @@ import 'dart:convert';
 
 JsonEncoder encoder = new JsonEncoder.withIndent("     ");
 
-loggingMiddleware(Store<AppState> store, action, NextDispatcher next) {
-  print('${new DateTime.now()}: $action');
-
-  next(action);
-}
-
 
 void main() {
   final store = new Store<AppState>(appStateReducer,
       initialState: new AppState(),
       middleware: [
-        loggingMiddleware,
+        new LoggingMiddleware.printer(),
         thunkMiddleware,
         NavigationMiddleware<AppState>()
       ]);
 
-  HttpService.store = store;
+  httpService.transformer = new FlutterTransformer(); 
   AuthService.store = store;
 
   runApp(new ConnectedApp(

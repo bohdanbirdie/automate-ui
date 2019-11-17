@@ -1,19 +1,16 @@
 import 'dart:convert';
 
-import 'package:automate_ui/helpers/constants.dart';
 import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:http/http.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
 
-final HttpService httpService = new HttpService();
 final AuthService authService = new AuthService();
 
 class Zone extends bg.Geofence {
@@ -145,12 +142,8 @@ void saveZoneRequest(Store<AppState> store, String identifier) async {
   store.dispatch(SaveZoneRequest());
   activeZone.identifier = identifier;
 
-  String body = json.encode(activeZone.toMap());
-
   try {
-    var url = '${hostname}users/zone';
-    Response response = await httpService
-        .post(url, body: body, headers: {'Content-type': 'application/json'});
+    Response response = await httpService.post('/users/zone', data: activeZone.toMap());
 
     if (response.statusCode != 201) {
       throw new Exception('Failed to save');
@@ -166,15 +159,13 @@ void getZonesRequest(Store<AppState> store) async {
   store.dispatch(GetZonesRequest());
 
   try {
-    var url = '${hostname}zones';
-    Response response = await httpService
-        .get(url);
+    Response<String> response = await httpService.get('/zones');
 
     if (response.statusCode != 200) {
       throw new Exception('Failed to load zones');
     }
 
-    store.dispatch(GetZonesSuccess(response.body));
+    store.dispatch(GetZonesSuccess(response.data)); // TODO: this should not be string, add decoder to model
   } on Exception catch (e) {
     store.dispatch(GetZonesFailure());
   }
@@ -188,7 +179,6 @@ ZonesState zonesReducer(ZonesState state, action) {
       );
 
     case GetZonesSuccess:
-      print(action.zones.toString());
       return state.clone(
         network: NetworkState.success(),
         zones: action.zones,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:automate_ui/pages/zones/zones_view_page.dart';
 import 'package:quiver/core.dart';
 import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/store/root_reducer.dart';
@@ -21,6 +22,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
   Completer<GoogleMapController> _controller = Completer();
   String zoneName;
   bool dialogState = false;
+  bool mapView = false;
 
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
@@ -108,6 +110,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
             activeMarkerUiId: store.state.zones.activeMarkerUiId,
             markers: markers,
             circles: circles,
+            zonesList: List.from(store.state.zones.zones.values),
             saveZoneRequest: (String identifier) =>
                 saveZoneRequest(store, identifier),
             onEditZone: (double radius) =>
@@ -144,11 +147,84 @@ class ZonesMapPageState extends State<ZonesMapPage>
                 circles: Set<Circle>.of(viewModel.circles.values),
               ),
             ),
+            _renderList(viewModel),
+            Positioned.fill(
+              child: Align(
+                child: Container(
+                  // alignment: Alignment.topCenter,
+                  color: ThemeData.dark().primaryColor,
+                  height: 35,
+                  width: MediaQuery.of(context).size.width,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      Padding(
+                        child: Text('Map view'),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                      ),
+                      Switch(
+                        value: mapView,
+                        onChanged: (value) {
+                          setState(() {
+                            mapView = value;
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                ),
+                alignment: Alignment.topCenter,
+              ),
+            ),
             _renderSlider(viewModel)
           ],
         );
       },
     );
+  }
+
+  Widget _renderList(_MapPageViewModel viewModel) {
+    if (!mapView) {
+      List<Zone> zones = viewModel.zonesList ?? List();
+      return Container(
+        color: Theme.of(context).cardColor,
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: ListView.separated(
+            separatorBuilder: (context, index) => Divider(
+                  color: Colors.black,
+                ),
+            padding: EdgeInsets.only(top: 35),
+            // Let the ListView know how many items it needs to build.
+            itemCount: zones.length,
+            // Provide a builder function. This is where the magic happens.
+            // Convert each item into a widget based on the type of item it is.
+            itemBuilder: (context, index) {
+              final Zone item = zones[index];
+              return ListTile(
+                title: Text(item.identifier),
+                trailing: Icon(Icons.keyboard_arrow_right),
+                onTap: () {
+                  // do something
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ZonesViewPage(item.uiId)),
+                  );
+                },
+                onLongPress: () {
+                  _centerToLocation(item.location);
+                  setState(() {
+                    mapView = true;
+                  });
+                },
+                // subtitle: Text(item.),
+              );
+            }),
+      );
+    }
+
+    return Container();
   }
 
   Widget _renderSlider(_MapPageViewModel viewModel) {
@@ -159,9 +235,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
           viewModel.onEditZone(newRating);
         },
         onSave: (saveData) {
-          setState(() {
-            viewModel.saveZoneRequest(saveData.zoneName);
-          });
+          viewModel.saveZoneRequest(saveData.zoneName);
         },
         onBackgropClick: () {
           viewModel.onCancelAddingZone(viewModel.activeMarkerUiId);
@@ -198,6 +272,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
 class _MapPageViewModel {
   final Map<String, Marker> markers;
   final Map<String, Circle> circles;
+  final List<Zone> zonesList;
   final String activeMarkerUiId;
   final NetworkState zonesNetwork;
   final Function(String uiId) onCancelAddingZone;
@@ -218,6 +293,7 @@ class _MapPageViewModel {
       @required this.zonesNetwork,
       @required this.circles,
       @required this.markers,
+      @required this.zonesList,
       @required this.activeMarkerUiId});
 
   @override
@@ -227,7 +303,8 @@ class _MapPageViewModel {
     final _MapPageViewModel typedOther = other;
     return markers.hashCode == typedOther.markers.hashCode &&
         activeMarkerUiId == typedOther.activeMarkerUiId &&
-        zonesNetwork.hashCode == typedOther.zonesNetwork.hashCode;
+        zonesNetwork.hashCode == typedOther.zonesNetwork.hashCode &&
+        zonesList.hashCode == typedOther.zonesList.hashCode;
   }
 
   @override
