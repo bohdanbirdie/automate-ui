@@ -1,7 +1,7 @@
 import 'package:automate_ui/store/automations/automation_model.dart';
 import 'package:automate_ui/store/events/event_model.dart';
 import 'package:automate_ui/store/root_reducer.dart';
-import 'package:automate_ui/store/zones/reducer.dart';
+import 'package:automate_ui/store/zones/zone_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
@@ -22,7 +22,7 @@ class _ViewAutomationPageState extends State<ViewAutomationPage> {
     );
   }
 
-  Widget _renderZoneTile(Zone zone, _ViewModel _viewModel) {
+  Widget _renderZoneTile(ZoneModel zone, _ViewModel _viewModel) {
     return Column(
       children: <Widget>[
         ListTile(
@@ -116,7 +116,7 @@ class _ViewAutomationPageState extends State<ViewAutomationPage> {
                                   height: 40,
                                 ),
                                 _renderTitle("Zones"),
-                                _renderList<Zone>(viewModel.zones,
+                                _renderList<ZoneModel>(viewModel.zones,
                                     _renderZoneTile, viewModel),
                               ],
                             ),
@@ -147,7 +147,7 @@ class _ViewAutomationPageState extends State<ViewAutomationPage> {
 
 class _ViewModel {
   final Automation automation;
-  final List<Zone> zones;
+  final List<ZoneModel> zones;
   final List<Event> events;
   final Map<String, Map<String, bool>> zonesMarkers;
 
@@ -162,12 +162,12 @@ class _ViewModel {
     final Automation automation =
         store.state.automations.automations[automationId];
 
-    final Map<String, Zone> zones =
+    final Map<String, ZoneModel> zones =
         (store.state.zones.zones ?? Map()).map((key, value) {
       return MapEntry(value.id, value);
     });
 
-    final List<Zone> relatedZones = automation.automationZones.map((zone) {
+    final List<ZoneModel> relatedZones = automation.automationZones.map((zone) {
       return zones[zone.zoneId];
     }).where((zone) {
       return zone != null;

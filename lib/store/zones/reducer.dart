@@ -4,56 +4,17 @@ import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
+import 'package:automate_ui/store/zones/zone_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:redux/redux.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as bg;
+
 
 final AuthService authService = new AuthService();
 
-class Zone extends bg.Geofence {
-  final LatLng location;
-  final String uiId;
-  final String id;
-
-  Zone(
-      {String identifier = '',
-      String this.id = "",
-      @required double radius,
-      @required double latitude,
-      @required double longitude,
-      @required this.uiId,
-      bool notifyOnEntry = true,
-      bool notifyOnExit = true,
-      bool notifyOnDwell = false,
-      int loiteringDelay,
-      Map<String, dynamic> extras})
-      : this.location = new LatLng(latitude, longitude),
-        super(
-          identifier: identifier,
-          radius: radius,
-          latitude: latitude,
-          longitude: longitude,
-          notifyOnEntry: notifyOnEntry,
-          notifyOnExit: notifyOnExit,
-          notifyOnDwell: notifyOnDwell,
-          loiteringDelay: loiteringDelay,
-        );
-
-  Map<String, dynamic> toMap() {
-    Map<String, dynamic> base = super.toMap();
-    base['uiId'] = this.uiId;
-
-    return base;
-  }
-
-  @override
-  String toString() => 'Zone location: $location, uiId: $uiId, id: $id, identifier: $identifier';
-}
 class ZonesState {
-  final Map<String, Zone> zones;
+  final Map<String, ZoneModel> zones;
   final String activeMarkerUiId;
   final NetworkState network;
 
@@ -63,7 +24,7 @@ class ZonesState {
       this.activeMarkerUiId});
 
   ZonesState clone(
-      {Map<String, Zone> zones,
+      {Map<String, ZoneModel> zones,
       NetworkState network,
       String activeMarkerUiId}) {
     return new ZonesState(
@@ -75,7 +36,13 @@ class ZonesState {
 
 class SaveZoneRequest {}
 
-class SaveZoneSuccess {}
+class SaveZoneSuccess {
+  final ZoneModel zone;
+
+  SaveZoneSuccess({
+    @required this.zone,
+  });
+}
 
 class SaveZoneFailure {}
 
@@ -83,15 +50,15 @@ class SaveZoneFailure {}
 class GetZonesRequest {}
 
 class GetZonesSuccess {
-  final Map<String, Zone> zones;
+  final Map<String, ZoneModel> zones;
 
   GetZonesSuccess._(this.zones);
 
   factory GetZonesSuccess(String zonesResponse) {
     Iterable zonesPayload = jsonDecode(zonesResponse);
-    Iterable<Zone> zones = zonesPayload.map((zone) {
+    Iterable<ZoneModel> zones = zonesPayload.map((zone) {
       try {
-        return new Zone(
+        return new ZoneModel(
           identifier: zone['identifier'],
           latitude: double.parse(zone['latitude']),
           longitude: double.parse(zone['longitude']),
@@ -143,18 +110,23 @@ class RemoveActiveZone {
 
 void saveZoneRequest(Store<AppState> store, String identifier) async {
   String activeMarkerUiId = store.state.zones.activeMarkerUiId;
-  Zone activeZone = store.state.zones.zones[activeMarkerUiId];
+  ZoneModel activeZone = store.state.zones.zones[activeMarkerUiId];
   store.dispatch(SaveZoneRequest());
   activeZone.identifier = identifier;
 
   try {
-    Response response = await httpService.post('/users/zone', data: activeZone.toMap());
+    Response<Map<String, dynamic>> response = await httpService.post('/users/zone', data: activeZone.toMap());
 
-    if (response.statusCode != 201) {
-      throw new Exception('Failed to save');
-    }
+    ZoneModel zone = ZoneModel(
+          identifier: response.data['identifier'],
+          latitude: response.data['latitude'],
+          longitude: response.data['longitude'],
+          radius: response.data['radius'].toDouble(),
+          uiId: response.data['uiId'],
+          id: response.data['id']
+        );
 
-    store.dispatch(SaveZoneSuccess());
+    store.dispatch(SaveZoneSuccess(zone: zone));
   } on Exception catch (e) {
     store.dispatch(SaveZoneFailure());
   }
@@ -201,8 +173,12 @@ ZonesState zonesReducer(ZonesState state, action) {
 
     case SaveZoneSuccess:
       // TODO: update ID from the response
+      Map<String, ZoneModel> zones = state.zones;
+      zones[action.zone.uiId] = action.zone;
+
       return state.clone(
         network: NetworkState.success(),
+        zones: zones,
       );
 
     case SaveZoneFailure:
@@ -211,8 +187,8 @@ ZonesState zonesReducer(ZonesState state, action) {
           activeMarkerUiId: state.activeMarkerUiId);
 
     case AddActiveZone:
-      Map<String, Zone> newZones = Map<String, Zone>.from(state.zones);
-      newZones[action.uiId] = new Zone(
+      Map<String, ZoneModel> newZones = Map<String, ZoneModel>.from(state.zones);
+      newZones[action.uiId] = new ZoneModel(
         identifier: action.identifier,
         latitude: action.location.latitude,
         longitude: action.location.longitude,
@@ -224,14 +200,14 @@ ZonesState zonesReducer(ZonesState state, action) {
           zones: newZones,
           activeMarkerUiId: action.uiId); // TODO: check if this even make sense
     case RemoveActiveZone:
-      Map<String, Zone> newZones = Map<String, Zone>.from(state.zones);
+      Map<String, ZoneModel> newZones = Map<String, ZoneModel>.from(state.zones);
       newZones.remove(action.uiId);
 
       return state.clone(zones: newZones, activeMarkerUiId: null);
 
     case EditActiveZone:
-      Map<String, Zone> newZones = Map<String, Zone>.from(state.zones);
-      Zone target = newZones[state.activeMarkerUiId];
+      Map<String, ZoneModel> newZones = Map<String, ZoneModel>.from(state.zones);
+      ZoneModel target = newZones[state.activeMarkerUiId];
       target.radius = action.radius;
       return state.clone(
           zones: newZones, activeMarkerUiId: state.activeMarkerUiId);

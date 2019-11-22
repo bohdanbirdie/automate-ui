@@ -1,5 +1,5 @@
 import 'package:automate_ui/store/root_reducer.dart';
-import 'package:automate_ui/store/zones/reducer.dart';
+import 'package:automate_ui/store/zones/zone_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -33,7 +33,7 @@ class ZonesViewPage extends StatelessWidget {
 }
 
 class _ViewModel {
-  final Zone zone;
+  final ZoneModel zone;
 
   _ViewModel({
     @required this.zone,

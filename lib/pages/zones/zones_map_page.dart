@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:automate_ui/pages/zones/zones_view_page.dart';
+import 'package:automate_ui/store/zones/zone_model.dart';
 import 'package:quiver/core.dart';
 import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/store/root_reducer.dart';
@@ -151,8 +152,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
             Positioned.fill(
               child: Align(
                 child: Container(
-                  // alignment: Alignment.topCenter,
-                  color: ThemeData.dark().primaryColor,
+                  color: Theme.of(context).backgroundColor,
                   height: 35,
                   width: MediaQuery.of(context).size.width,
                   child: Row(
@@ -186,7 +186,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
 
   Widget _renderList(_MapPageViewModel viewModel) {
     if (!mapView) {
-      List<Zone> zones = viewModel.zonesList ?? List();
+      List<ZoneModel> zones = viewModel.zonesList ?? List();
       return Container(
         color: Theme.of(context).cardColor,
         height: MediaQuery.of(context).size.height,
@@ -201,7 +201,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
             // Provide a builder function. This is where the magic happens.
             // Convert each item into a widget based on the type of item it is.
             itemBuilder: (context, index) {
-              final Zone item = zones[index];
+              final ZoneModel item = zones[index];
               return ListTile(
                 title: Text(item.identifier),
                 trailing: Icon(Icons.keyboard_arrow_right),
@@ -272,7 +272,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
 class _MapPageViewModel {
   final Map<String, Marker> markers;
   final Map<String, Circle> circles;
-  final List<Zone> zonesList;
+  final List<ZoneModel> zonesList;
   final String activeMarkerUiId;
   final NetworkState zonesNetwork;
   final Function(String uiId) onCancelAddingZone;

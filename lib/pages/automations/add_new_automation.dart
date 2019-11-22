@@ -2,7 +2,7 @@ import 'package:automate_ui/store/automations/create_automation_dto.dart';
 import 'package:automate_ui/store/automations/reducer.dart';
 import 'package:automate_ui/store/events/event_model.dart';
 import 'package:automate_ui/store/root_reducer.dart';
-import 'package:automate_ui/store/zones/reducer.dart';
+import 'package:automate_ui/store/zones/zone_model.dart';
 import 'package:automate_ui/widgets/loading_overlay.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +22,7 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
   List<String> addedZonesIds = List();
   List<String> addedEventsIds = List();
 
-  Widget _buildZoneListItem(Zone zone) {
+  Widget _buildZoneListItem(ZoneModel zone) {
     // TODO: refactor for DRY
     Widget zoneWidget = Container(
         child: ListTile(
@@ -122,7 +122,7 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
     var zonesItems = addedZonesIds.where((zoneId) {
       return viewModel.zones[zoneId] != null;
     }).map((zoneId) {
-      Zone zone = viewModel.zones[zoneId];
+      ZoneModel zone = viewModel.zones[zoneId];
       return _buildZoneListItem(zone);
     }).toList();
 
@@ -271,10 +271,6 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
                           child: Text("Submit"),
                           onPressed: () {
                             if (_fbKey.currentState.saveAndValidate()) {
-                              print(_fbKey.currentState.value);
-                              print(addedZonesIds);
-                              print(addedEventsIds);
-
                               CreateAutomationDto payload =
                                   new CreateAutomationDto(
                                 description:
@@ -285,7 +281,6 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
                                 payload: _fbKey.currentState.value,
                               );
 
-                              print(payload);
                               viewModel.saveAutomation(payload);
                             }
                           },
@@ -309,7 +304,7 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
 }
 
 class _ViewModel {
-  final Map<String, Zone> zones;
+  final Map<String, ZoneModel> zones;
   final Map<String, Event> events;
   final Function(CreateAutomationDto payload) saveAutomation;
   final bool createLoading;
@@ -322,7 +317,7 @@ class _ViewModel {
   });
 
   factory _ViewModel.fromStore(Store<AppState> store) {
-    final Map<String, Zone> zones =
+    final Map<String, ZoneModel> zones =
         (store.state.zones.zones ?? Map()).map((key, value) {
       return MapEntry(value.id, value);
     });
