@@ -1,5 +1,6 @@
 import 'package:automate_ui/pages/automations/add_new_automation.dart';
 import 'package:automate_ui/pages/automations/automations_page.dart';
+import 'package:automate_ui/pages/events/add_new_event.dart';
 import 'package:automate_ui/pages/events/events_page.dart';
 import 'package:automate_ui/pages/zones/zones_map_page.dart';
 import 'package:automate_ui/store/automations/reducer.dart';
@@ -34,19 +35,8 @@ class TabsPageState extends State<TabsPage>
     super.initState();
   }
 
-  List<Widget> _getBarAction(_ViewModel viewModel) {
+  List<Widget> _getBarAction() {
     return [
-      Visibility(
-        visible: activeIndex == 2,
-        child: IconButton(
-            icon: Icon(
-              Icons.image,
-              color: Theme.of(context).accentIconTheme.color,
-            ),
-            onPressed: () {
-              print("pressed");
-            }),
-      ),
       Visibility(
         visible: activeIndex == 1,
         child: IconButton(
@@ -55,7 +45,12 @@ class TabsPageState extends State<TabsPage>
               color: Theme.of(context).accentIconTheme.color,
             ),
             onPressed: () {
-              viewModel.onEventAdd();
+              showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (context) {
+                    return AddNewEventDialog();
+                  });
             }),
       ),
       Visibility(
@@ -66,7 +61,6 @@ class TabsPageState extends State<TabsPage>
               color: Theme.of(context).accentIconTheme.color,
             ),
             onPressed: () {
-              viewModel.onAutomationAdd();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => AddNewAutomationPage()),
@@ -78,62 +72,49 @@ class TabsPageState extends State<TabsPage>
 
   @override
   Widget build(BuildContext context) {
-    return new StoreConnector<AppState, _ViewModel>(onInit: (store) {
-      getZonesRequest(store);
-      store.dispatch(getAutomationsRequest());
-      store.dispatch(getEventsRequest());
-    }, converter: (store) {
-      return _ViewModel(onAutomationAdd: () {
-        print('added automation');
-      }, onEventAdd: () {
-        print("added event");
-      });
-    }, builder: (context, viewModel) {
-      return DefaultTabController(
-        length: 3,
-        child: Scaffold(
-          appBar: AppBar(
-            actions: _getBarAction(viewModel),
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: [
-                Tab(
-                  icon: Icon(Icons.receipt),
-                  text: "Automations",
+    return new StoreConnector<AppState, void>(
+        onInit: (store) {
+          getZonesRequest(store);
+          store.dispatch(getAutomationsRequest());
+          store.dispatch(getEventsRequest());
+        },
+        converter: (store) {},
+        builder: (context, viewModel) {
+          return DefaultTabController(
+            length: 3,
+            child: Scaffold(
+              appBar: AppBar(
+                actions: _getBarAction(),
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: [
+                    Tab(
+                      icon: Icon(Icons.receipt),
+                      text: "Automations",
+                    ),
+                    Tab(
+                      icon: Icon(Icons.event),
+                      text: "Events",
+                    ),
+                    Tab(
+                      icon: Icon(Icons.location_on),
+                      text: "Zones",
+                    ),
+                  ],
                 ),
-                Tab(
-                  icon: Icon(Icons.event),
-                  text: "Events",
-                ),
-                Tab(
-                  icon: Icon(Icons.location_on),
-                  text: "Zones",
-                ),
-              ],
+                title: Text('Automate'),
+              ),
+              body: TabBarView(
+                controller: _tabController,
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  AutomationsPage(),
+                  EventsPage(),
+                  ZonesMapPage(),
+                ],
+              ),
             ),
-            title: Text('Automate'),
-          ),
-          body: TabBarView(
-            controller: _tabController,
-            physics: NeverScrollableScrollPhysics(),
-            children: [
-              AutomationsPage(),
-              EventsPage(),
-              ZonesMapPage(),
-            ],
-          ),
-        ),
-      );
-    });
+          );
+        });
   }
-}
-
-class _ViewModel {
-  final Function onAutomationAdd;
-  final Function onEventAdd;
-
-  _ViewModel({
-    this.onAutomationAdd,
-    this.onEventAdd,
-  });
 }

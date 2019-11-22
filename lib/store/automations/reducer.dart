@@ -68,11 +68,7 @@ ThunkAction<AppState> getAutomationsRequest() {
 
 class SaveAutomationsRequest {}
 
-class SaveAutomationsSuccess {
-  // final Map<String, Automation> automations;
-
-  // SaveAutomationsSuccess(this.automations);
-}
+class SaveAutomationsSuccess {}
 
 class SaveAutomationsFailure {}
 
@@ -81,12 +77,9 @@ ThunkAction<AppState> saveAutomationsRequest(
   return (Store<AppState> store) async {
     store.dispatch(SaveAutomationsRequest());
     try {
-      print('kek');
-      print(createAutomationDto.toMap());
+
       Response<List> response = await httpService.post('/automations',
           data: createAutomationDto.toMap());
-
-      print(response.data);
 
       var automations = List<Automation>.from(
           response.data.map((automation) => Automation.fromMap(automation)));

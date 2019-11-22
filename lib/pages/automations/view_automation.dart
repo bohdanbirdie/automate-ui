@@ -180,7 +180,7 @@ class _ViewModel {
         'onLeave': aZone.onLeave,
       };
     });
-    print('relatedZones $relatedZones');
+
     final Map<String, Event> events = store.state.events.events ?? Map();
 
     final List<Event> relatedEvents = automation.automationEvents.map((event) {
