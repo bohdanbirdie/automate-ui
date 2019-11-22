@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:automate_ui/helpers/constants.dart';
 import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/services/http_service.dart';
@@ -45,7 +46,7 @@ void loginUserAction(Store<AppState> store, String username, String password) as
   store.dispatch(LoginRequest());
 
   try {
-    Response response = await post('/auth/login', body: { 'username': username, 'password': password });
+    Response response = await post('${hostname}auth/login', body: { 'username': username, 'password': password });
 
     if (response.statusCode != 201 ) {      
       throw new Exception('Failed to login');

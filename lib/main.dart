@@ -77,7 +77,7 @@ class _ConnectedAppState extends State<ConnectedApp> {
     return new StoreProvider<AppState>(
       store: widget.store,
       child: new MaterialApp(
-        theme: new ThemeData.dark(),
+        theme: new ThemeData.light(),
         navigatorKey: NavigatorHolder.navigatorKey,
         initialRoute: '/',
         routes: {

@@ -1,3 +1,4 @@
+import 'package:automate_ui/pages/automations/view_automation.dart';
 import 'package:automate_ui/store/automations/automation_model.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,14 @@ class AutomationsPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final Automation item = viewModel.automations[index];
               return ListTile(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            ViewAutomationPage(automationId: item.id)),
+                  );
+                },
                 title: Text(item.name),
                 subtitle: Text(item.description),
                 trailing: Icon(Icons.keyboard_arrow_right),

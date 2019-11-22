@@ -28,7 +28,9 @@ class AuthService {
         Response response = await httpService.get('/users/profile', options: Options(headers: { 'Authorization': 'Bearer $token'}));
 
         if (response.statusCode != 200) {
-          throw Exception();
+          // throw Exception();
+          prefs.remove(TOKEN_KEY);
+          return false;
         } else {
           if (AuthService.store != null) {
             AuthService.store.dispatch(LoginRequestSuccess(token));
@@ -36,6 +38,7 @@ class AuthService {
           return true;
         }
       } catch (e) {
+        prefs.remove(TOKEN_KEY);
         return false;
       }
     }

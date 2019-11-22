@@ -35,6 +35,8 @@ dependencies:
   dio: ^3.0.4
   dio_flutter_transformer: ^3.0.2 
   redux_logging: ^0.3.0
+  flutter_form_builder: ^3.6.1
+  expandable: ^3.0.1
 
 
 

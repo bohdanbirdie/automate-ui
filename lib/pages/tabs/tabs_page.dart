@@ -1,3 +1,4 @@
+import 'package:automate_ui/pages/automations/add_new_automation.dart';
 import 'package:automate_ui/pages/automations/automations_page.dart';
 import 'package:automate_ui/pages/events/events_page.dart';
 import 'package:automate_ui/pages/zones/zones_map_page.dart';
@@ -40,7 +41,7 @@ class TabsPageState extends State<TabsPage>
         child: IconButton(
             icon: Icon(
               Icons.image,
-              color: Theme.of(context).accentColor,
+              color: Theme.of(context).accentIconTheme.color,
             ),
             onPressed: () {
               print("pressed");
@@ -51,7 +52,7 @@ class TabsPageState extends State<TabsPage>
         child: IconButton(
             icon: Icon(
               Icons.add_circle_outline,
-              color: Theme.of(context).accentColor,
+              color: Theme.of(context).accentIconTheme.color,
             ),
             onPressed: () {
               viewModel.onEventAdd();
@@ -62,10 +63,14 @@ class TabsPageState extends State<TabsPage>
         child: IconButton(
             icon: Icon(
               Icons.add_box,
-              color: Theme.of(context).accentColor,
+              color: Theme.of(context).accentIconTheme.color,
             ),
             onPressed: () {
               viewModel.onAutomationAdd();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddNewAutomationPage()),
+              );
             }),
       ),
     ];

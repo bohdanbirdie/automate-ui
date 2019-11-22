@@ -16,9 +16,11 @@ final AuthService authService = new AuthService();
 class Zone extends bg.Geofence {
   final LatLng location;
   final String uiId;
+  final String id;
 
   Zone(
       {String identifier = '',
+      String this.id = "",
       @required double radius,
       @required double latitude,
       @required double longitude,
@@ -46,8 +48,10 @@ class Zone extends bg.Geofence {
 
     return base;
   }
-}
 
+  @override
+  String toString() => 'Zone location: $location, uiId: $uiId, id: $id, identifier: $identifier';
+}
 class ZonesState {
   final Map<String, Zone> zones;
   final String activeMarkerUiId;
@@ -93,6 +97,7 @@ class GetZonesSuccess {
           longitude: double.parse(zone['longitude']),
           radius: double.parse(zone['radius']),
           uiId: zone['uiId'],
+          id: zone['id']
         );
       } catch (e) {
         return null;
@@ -195,6 +200,7 @@ ZonesState zonesReducer(ZonesState state, action) {
           activeMarkerUiId: state.activeMarkerUiId);
 
     case SaveZoneSuccess:
+      // TODO: update ID from the response
       return state.clone(
         network: NetworkState.success(),
       );
