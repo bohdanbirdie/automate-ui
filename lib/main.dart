@@ -1,4 +1,3 @@
-import 'package:automate_ui/helpers/constants.dart';
 import 'package:automate_ui/pages/login/login_page.dart';
 import 'package:automate_ui/pages/tabs/tabs_page.dart';
 import 'package:automate_ui/services/auth_service.dart';
@@ -6,22 +5,17 @@ import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:dio_flutter_transformer/dio_flutter_transformer.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import 'package:flutter_background_geolocation/flutter_background_geolocation.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_logging/redux_logging.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
-
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as bg;
 import 'dart:convert';
 
 JsonEncoder encoder = new JsonEncoder.withIndent("     ");
 
-
 void main() {
+
   final store = new Store<AppState>(appStateReducer,
       initialState: new AppState(),
       middleware: [
@@ -30,15 +24,13 @@ void main() {
         NavigationMiddleware<AppState>()
       ]);
 
-  httpService.transformer = new FlutterTransformer(); 
+  httpService.transformer = new FlutterTransformer();
   AuthService.store = store;
 
   runApp(new ConnectedApp(
-      store: store,
-      ));
-
+    store: store,
+  ));
 }
-
 
 class ConnectedApp extends StatefulWidget {
   final Store<AppState> store;
@@ -51,26 +43,6 @@ class ConnectedApp extends StatefulWidget {
 }
 
 class _ConnectedAppState extends State<ConnectedApp> {
-
-  @override
-  void initState() {
-
-    bg.BackgroundGeolocation.ready(bg.Config(
-            desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-            distanceFilter: 10.0,
-            geofenceInitialTriggerEntry: false,
-            stopOnTerminate: false,
-            startOnBoot: true,
-            url: '${hostname}location',
-            autoSync: true,
-            // httpMethod: 'POST',
-            debug: false,
-            logLevel: bg.Config.LOG_LEVEL_OFF,
-            reset: true))
-        .then((bg.State state) {
-      
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

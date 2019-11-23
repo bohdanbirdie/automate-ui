@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/services/auth_service.dart';
+import 'package:automate_ui/services/geofence_service.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:automate_ui/store/zones/zone_model.dart';
@@ -127,6 +128,8 @@ void saveZoneRequest(Store<AppState> store, String identifier) async {
         );
 
     store.dispatch(SaveZoneSuccess(zone: zone));
+
+    await GeofenceService.setZones(store.state.zones.zones.values.toList());
   } on Exception catch (e) {
     store.dispatch(SaveZoneFailure());
   }
@@ -141,8 +144,11 @@ void getZonesRequest(Store<AppState> store) async {
     if (response.statusCode != 200) {
       throw new Exception('Failed to load zones');
     }
+    GetZonesSuccess action = GetZonesSuccess(response.data);
 
-    store.dispatch(GetZonesSuccess(response.data)); // TODO: this should not be string, add decoder to model
+    await GeofenceService.setZones(action.zones.values.toList());
+
+    store.dispatch(action); // TODO: this should not be string, add decoder to model
   } on Exception catch (e) {
     store.dispatch(GetZonesFailure());
   }

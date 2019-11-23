@@ -30,6 +30,9 @@ class ZoneModel extends bg.Geofence {
           notifyOnExit: notifyOnExit,
           notifyOnDwell: notifyOnDwell,
           loiteringDelay: loiteringDelay,
+          extras: {
+            'id': id,
+          }
         );
 
   Map<String, dynamic> toMap() {
@@ -41,4 +44,19 @@ class ZoneModel extends bg.Geofence {
 
   @override
   String toString() => 'Zone location: $location, uiId: $uiId, id: $id, identifier: $identifier';
+
+  bg.Geofence geofence() {
+    
+    return bg.Geofence(
+      identifier: this.identifier,
+      radius: this.radius,
+      latitude: this.latitude,
+      longitude: this.longitude,
+      notifyOnEntry: this.notifyOnEntry,
+      notifyOnExit: this.notifyOnExit,
+      notifyOnDwell: this.notifyOnDwell,
+      loiteringDelay: this.loiteringDelay,
+      extras: this.extras
+    );
+  }
 }

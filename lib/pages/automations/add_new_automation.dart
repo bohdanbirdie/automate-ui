@@ -165,7 +165,7 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
   void _openZonesList(_ViewModel viewModel) {
     List<Widget> options = viewModel.zones.values.where((zone) {
       bool foundZone = addedZonesIds
-          .contains(zone.id); // TODO: might be missing after creating
+          .contains(zone.id);
 
       return !foundZone;
     }).map((zone) {
