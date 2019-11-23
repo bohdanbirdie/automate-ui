@@ -8,6 +8,7 @@ import 'package:automate_ui/store/root_reducer.dart';
 import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
 import 'package:http/http.dart';
 import 'package:redux/redux.dart';
+import 'package:redux_thunk/redux_thunk.dart';
 
 final AuthService authService = new AuthService();
 
@@ -15,9 +16,9 @@ class AuthState {
   final String userToken;
   final NetworkState network;
 
-  const AuthState({ this.userToken, this.network = const NetworkState() });
+  const AuthState({this.userToken, this.network = const NetworkState()});
 
-  AuthState clone({ String userToken, NetworkState network }) {
+  AuthState clone({String userToken, NetworkState network}) {
     userToken = userToken ?? this.userToken;
     network = network ?? this.network;
     return new AuthState(userToken: userToken, network: network);
@@ -42,24 +43,38 @@ class RemoveUserToken {
   String token;
 }
 
-void loginUserAction(Store<AppState> store, String username, String password) async {
-  store.dispatch(LoginRequest());
+ThunkAction<AppState> loginUserAction(
+    String username, String password, bool isRegistration) {
+  return (Store<AppState> store) async {
+    store.dispatch(LoginRequest());
 
-  try {
-    Response response = await post('${hostname}auth/login', body: { 'username': username, 'password': password });
+    String endpoint =
+        isRegistration ? '${hostname}auth/register' : '${hostname}auth/login';
 
-    if (response.statusCode != 201 ) {      
-      throw new Exception('Failed to login');
+    try {
+      Response response = await post(
+        endpoint,
+        body: {'username': username, 'password': password},
+      );
+
+      if (response.statusCode == 403) {
+        throw new Exception('Such user already exist');
+      }
+
+      if (response.statusCode != 201) {
+        throw new Exception(
+            'Failed to ${isRegistration ? 'register' : 'login'}');
+      }
+
+      Map<String, dynamic> session = jsonDecode(response.body);
+      authService.saveSession(session['access_token']);
+
+      store.dispatch(LoginRequestSuccess(session['access_token']));
+      store.dispatch(NavigateToAction.replace('/tabs'));
+    } on Exception catch (e) {
+      store.dispatch(LoginRequestFailure(e.toString()));
     }
-
-    Map<String, dynamic> user = jsonDecode(response.body);
-    authService.saveSession(user['access_token']);
-
-    store.dispatch(LoginRequestSuccess(user['access_token']));
-    store.dispatch(NavigateToAction.replace('/tabs'));
-  } on Exception catch (e) {
-    store.dispatch(LoginRequestFailure(e.toString()));
-  }
+  };
 }
 
 AuthState authReducer(AuthState state, action) {
@@ -69,9 +84,11 @@ AuthState authReducer(AuthState state, action) {
     String token = action.token;
     httpService.options.headers.addAll({'Authorization': 'Bearer ${token}'});
 
-    return state.clone(userToken: action.token, network: NetworkState.success());
+    return state.clone(
+        userToken: action.token, network: NetworkState.success());
   } else if (action is LoginRequestFailure) {
-    return state.clone(network: NetworkState.failure(errorMessage: action.error));
+    return state.clone(
+        network: NetworkState.failure(errorMessage: action.error));
   } else {
     return state;
   }

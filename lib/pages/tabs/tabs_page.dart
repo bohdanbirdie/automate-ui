@@ -3,6 +3,7 @@ import 'package:automate_ui/pages/automations/automations_page.dart';
 import 'package:automate_ui/pages/events/add_new_event.dart';
 import 'package:automate_ui/pages/events/events_page.dart';
 import 'package:automate_ui/pages/zones/zones_map_page.dart';
+import 'package:automate_ui/services/auth_service.dart';
 import 'package:automate_ui/store/automations/reducer.dart';
 import 'package:automate_ui/store/events/reducer.dart';
 import 'package:automate_ui/store/root_reducer.dart';
@@ -12,6 +13,7 @@ import 'package:automate_ui/store/zones/reducer.dart';
 import 'package:uuid/uuid.dart';
 
 final uuid = new Uuid();
+final AuthService authService = new AuthService();
 
 class TabsPage extends StatefulWidget {
   @override
@@ -83,6 +85,35 @@ class TabsPageState extends State<TabsPage>
           return DefaultTabController(
             length: 3,
             child: Scaffold(
+              drawer: Drawer(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: <Widget>[
+                    DrawerHeader(
+                      child: Text(
+                        'Quick actions',
+                        style: TextStyle(
+                          fontSize: 30,
+                          color: Theme.of(context).accentIconTheme.color,
+                        ),
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(
+                        'Logout',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      onTap: () async {
+                        await authService.logout();
+                        Navigator.pushReplacementNamed(context, '/');
+                      },
+                    ),
+                  ],
+                ),
+              ),
               appBar: AppBar(
                 actions: _getBarAction(),
                 bottom: TabBar(

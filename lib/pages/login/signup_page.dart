@@ -6,26 +6,25 @@ import 'package:automate_ui/widgets/full_screen_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
-class _LoginPageViewModel {
-  final Function(String username, String password, bool isRegistration) onLogin;
+class _SignUpPageViewModel {
+  final Function(String username, String password) onLogin;
   final NetworkState authNetwork;
 
-  _LoginPageViewModel({this.onLogin, this.authNetwork});
+  _SignUpPageViewModel({this.onLogin, this.authNetwork});
 }
 
-class LoginPage extends StatefulWidget {
-  LoginPage({Key key}) : super(key: key);
+class SignUpPage extends StatefulWidget {
+  SignUpPage({Key key}) : super(key: key);
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _SignUpPageState createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignUpPageState extends State<SignUpPage> {
   final AuthService authService = new AuthService();
   final _formKey = GlobalKey<FormState>();
   String _username;
   String _password;
-  bool _isRegistration = false;
 
   void _validateSession() async {
     bool wasError = false;
@@ -59,12 +58,11 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return new StoreConnector<AppState, _LoginPageViewModel>(
+    return new StoreConnector<AppState, _SignUpPageViewModel>(
       converter: (store) {
-        return _LoginPageViewModel(
-          onLogin: (String username, String password, bool isRegistration) =>
-              store.dispatch(
-                  loginUserAction(username, password, isRegistration)),
+        return _SignUpPageViewModel(
+          onLogin: (String username, String password) =>
+              store.dispatch(loginUserAction(username, password)),
           authNetwork: store.state.auth.network,
         );
       },
@@ -82,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget buildForm(_LoginPageViewModel viewModel) {
+  Widget buildForm(_SignUpPageViewModel viewModel) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10.0),
       child: Form(
@@ -91,36 +89,13 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                buildAnimatedDefaultTextStyle('Login', !_isRegistration),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Switch(
-                    value: _isRegistration,
-                    onChanged: (val) {
-                      setState(() {
-                        _isRegistration = val;
-                      });
-                    },
-                  ),
-                ),
-                buildAnimatedDefaultTextStyle('Signup', _isRegistration),
-              ],
+            Text(
+              'Login',
+              style: TextStyle(fontSize: 30),
             ),
             Visibility(
               visible: viewModel.authNetwork.error,
-              child: Container(
-                child: Text(
-                  viewModel.authNetwork.errorMessage,
-                  style: TextStyle(
-                    color: Theme.of(context).errorColor,
-                    fontSize: 17,
-                  ),
-                ),
-              ),
+              child: Container(child: Text(viewModel.authNetwork.errorMessage)),
             ),
             buildTextFormField(
               "Username",
@@ -145,7 +120,8 @@ class _LoginPageState extends State<LoginPage> {
                     if (form.validate()) {
                       form.save();
 
-                      viewModel.onLogin(_username, _password, _isRegistration);
+                      viewModel.onLogin(_username, _password);
+                      // Navigator.of(context).pop();
                     }
                   },
                   child: Text('Submit'),
@@ -159,16 +135,6 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget buildAnimatedDefaultTextStyle(String text, isActive) {
-    return AnimatedDefaultTextStyle(
-      style: isActive
-          ? TextStyle(fontSize: 30, color: Colors.black)
-          : TextStyle(fontSize: 30.0, color: Colors.black.withOpacity(0.5)),
-      duration: const Duration(milliseconds: 200),
-      child: Text(text),
     );
   }
 

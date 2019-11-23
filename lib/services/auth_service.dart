@@ -53,6 +53,12 @@ class AuthService {
     return false;
   }
 
+  Future<void> logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(TOKEN_KEY);
+    await GeofenceService.revomeZones();
+  }
+
   void saveSession(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
