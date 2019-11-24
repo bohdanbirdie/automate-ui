@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:automate_ui/helpers/constants.dart';
 import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/services/auth_service.dart';
+import 'package:automate_ui/services/geofence_service.dart';
 import 'package:automate_ui/services/http_service.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:flutter_redux_navigation/flutter_redux_navigation.dart';
@@ -68,6 +69,8 @@ ThunkAction<AppState> loginUserAction(
 
       Map<String, dynamic> session = jsonDecode(response.body);
       authService.saveSession(session['access_token']);
+
+      await GeofenceService.startPlugin(session['access_token']);
 
       store.dispatch(LoginRequestSuccess(session['access_token']));
       store.dispatch(NavigateToAction.replace('/tabs'));

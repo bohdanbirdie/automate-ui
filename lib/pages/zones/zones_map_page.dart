@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:automate_ui/pages/zones/zones_view_page.dart';
 import 'package:automate_ui/store/zones/zone_model.dart';
+import 'package:automate_ui/widgets/empty_state.dart';
+import 'package:automate_ui/widgets/loading_state.dart';
 import 'package:quiver/core.dart';
 import 'package:automate_ui/helpers/network_state.dart';
 import 'package:automate_ui/store/root_reducer.dart';
@@ -128,6 +130,10 @@ class ZonesMapPageState extends State<ZonesMapPage>
             zonesNetwork: store.state.zones.network);
       },
       builder: (context, viewModel) {
+        if (viewModel.zonesNetwork.loading) {
+         return LoadingState();
+        }
+
         return Stack(
           alignment: Alignment.bottomCenter,
           children: <Widget>[
@@ -187,6 +193,14 @@ class ZonesMapPageState extends State<ZonesMapPage>
   Widget _renderList(_MapPageViewModel viewModel) {
     if (!mapView) {
       List<ZoneModel> zones = viewModel.zonesList ?? List();
+
+      if (zones.length == 0) {
+        return Container(
+          color: Theme.of(context).cardColor,
+          child: EmptyState(),
+        );
+      }
+
       return Container(
         color: Theme.of(context).cardColor,
         height: MediaQuery.of(context).size.height,
@@ -209,7 +223,8 @@ class ZonesMapPageState extends State<ZonesMapPage>
                   // do something
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ZonesViewPage(item.uiId)),
+                    MaterialPageRoute(
+                        builder: (context) => ZonesViewPage(item.uiId)),
                   );
                 },
                 onLongPress: () {
@@ -229,17 +244,20 @@ class ZonesMapPageState extends State<ZonesMapPage>
 
   Widget _renderSlider(_MapPageViewModel viewModel) {
     if (viewModel.activeMarkerUiId != null) {
-      return NewLocationDialog(
-        radius: viewModel.circles[viewModel.activeMarkerUiId].radius,
-        onChangeEnd: (newRating) {
-          viewModel.onEditZone(newRating);
-        },
-        onSave: (saveData) {
-          viewModel.saveZoneRequest(saveData.zoneName);
-        },
-        onBackgropClick: () {
-          viewModel.onCancelAddingZone(viewModel.activeMarkerUiId);
-        },
+      return Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: NewLocationDialog(
+          radius: viewModel.circles[viewModel.activeMarkerUiId].radius,
+          onChangeEnd: (newRating) {
+            viewModel.onEditZone(newRating);
+          },
+          onSave: (saveData) {
+            viewModel.saveZoneRequest(saveData.zoneName);
+          },
+          onBackgropClick: () {
+            viewModel.onCancelAddingZone(viewModel.activeMarkerUiId);
+          },
+        ),
       );
     }
     return Container();

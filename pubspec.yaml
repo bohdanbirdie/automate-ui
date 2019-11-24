@@ -37,8 +37,9 @@ dependencies:
   redux_logging: ^0.3.0
   flutter_form_builder: ^3.6.1
   expandable: ^3.0.1
-
-
+  connection_status_bar: ^1.1.1
+  quick_actions: ^0.3.3+1
+  youtube_player_flutter: ^6.0.3+2
 
 dev_dependencies:
   flutter_test:

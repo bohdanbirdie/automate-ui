@@ -164,8 +164,7 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
 
   void _openZonesList(_ViewModel viewModel) {
     List<Widget> options = viewModel.zones.values.where((zone) {
-      bool foundZone = addedZonesIds
-          .contains(zone.id);
+      bool foundZone = addedZonesIds.contains(zone.id);
 
       return !foundZone;
     }).map((zone) {
@@ -184,7 +183,9 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(
-            title: Text('Choose a Zone to connect'),
+            title: Text(options.length == 0
+                ? 'No items found'
+                : 'Choose a Zone to connect'),
             children: options,
           );
         });
@@ -211,7 +212,9 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(
-            title: Text('Choose a Event to connect'),
+            title: Text(options.length == 0
+                ? 'No items found'
+                : 'Choose a Event to connect'),
             children: options,
           );
         });
@@ -231,69 +234,72 @@ class _AddNewAutomationPageState extends State<AddNewAutomationPage> {
             body: Stack(
               children: <Widget>[
                 SingleChildScrollView(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    FormBuilder(
-                      key: _fbKey,
-                      initialValue: {
-                        'name': "Name test",
-                        'description': "Description test",
-                      },
-                      autovalidate: true,
-                      child: Column(
-                        children: <Widget>[
-                          SizedBox(height: 10.0),
-                          FormBuilderTextField(
-                            attribute: "name",
-                            decoration:
-                                InputDecoration(labelText: "Automation name"),
-                            validators: [FormBuilderValidators.minLength(5)],
-                          ),
-                          SizedBox(height: 10.0),
-                          FormBuilderTextField(
-                            attribute: "description",
-                            decoration:
-                                InputDecoration(labelText: "Description"),
-                            validators: [FormBuilderValidators.minLength(10)],
-                          ),
-                          SizedBox(height: 10.0),
-                          Column(children: _buildEventsList(viewModel)),
-                          SizedBox(height: 30.0),
-                          Column(children: _buildZonesList(viewModel)),
-                          SizedBox(height: 10.0),
-                        ],
+                    child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      FormBuilder(
+                        key: _fbKey,
+                        initialValue: {
+                          'name': "Name test",
+                          'description': "Description test",
+                        },
+                        autovalidate: true,
+                        child: Column(
+                          children: <Widget>[
+                            SizedBox(height: 10.0),
+                            FormBuilderTextField(
+                              attribute: "name",
+                              decoration:
+                                  InputDecoration(labelText: "Automation name"),
+                              validators: [FormBuilderValidators.minLength(5)],
+                            ),
+                            SizedBox(height: 10.0),
+                            FormBuilderTextField(
+                              attribute: "description",
+                              decoration:
+                                  InputDecoration(labelText: "Description"),
+                              validators: [FormBuilderValidators.minLength(10)],
+                            ),
+                            SizedBox(height: 10.0),
+                            Column(children: _buildEventsList(viewModel)),
+                            SizedBox(height: 30.0),
+                            Column(children: _buildZonesList(viewModel)),
+                            SizedBox(height: 10.0),
+                          ],
+                        ),
                       ),
-                    ),
-                    Row(
-                      children: <Widget>[
-                        MaterialButton(
-                          child: Text("Submit"),
-                          onPressed: () {
-                            if (_fbKey.currentState.saveAndValidate()) {
-                              CreateAutomationDto payload =
-                                  new CreateAutomationDto(
-                                description:
-                                    _fbKey.currentState.value['description'],
-                                name: _fbKey.currentState.value['name'],
-                                zonesIds: addedZonesIds,
-                                eventsIds: addedEventsIds,
-                                payload: _fbKey.currentState.value,
-                              );
+                      Row(
+                        children: <Widget>[
+                          MaterialButton(
+                            child: Text("Submit"),
+                            onPressed: () {
+                              if (_fbKey.currentState.saveAndValidate()) {
+                                CreateAutomationDto payload =
+                                    new CreateAutomationDto(
+                                  description:
+                                      _fbKey.currentState.value['description'],
+                                  name: _fbKey.currentState.value['name'],
+                                  zonesIds: addedZonesIds,
+                                  eventsIds: addedEventsIds,
+                                  payload: _fbKey.currentState.value,
+                                );
 
-                              viewModel.saveAutomation(payload);
-                            }
-                          },
-                        ),
-                        MaterialButton(
-                          child: Text("Reset"),
-                          onPressed: () {
-                            _fbKey.currentState.reset();
-                          },
-                        ),
-                      ],
-                    )
-                  ],
+                                viewModel.saveAutomation(payload);
+                              }
+                            },
+                          ),
+                          MaterialButton(
+                            child: Text("Reset"),
+                            onPressed: () {
+                              _fbKey.currentState.reset();
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
                 )),
                 LoadingOverlay(loading: viewModel.createLoading)
               ],

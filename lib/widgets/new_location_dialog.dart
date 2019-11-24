@@ -86,7 +86,6 @@ class _NewLocationDialogState extends State<NewLocationDialog> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: <Widget>[
                         Container(
-                          // color: Colors.red,
                           child: Row(
                             children: <Widget>[
                               Slider(
@@ -116,7 +115,6 @@ class _NewLocationDialogState extends State<NewLocationDialog> {
                           ),
                         ),
                         Container(
-                            // color: Colors.yellow,
                             child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: <Widget>[
@@ -124,18 +122,11 @@ class _NewLocationDialogState extends State<NewLocationDialog> {
                               child: Padding(
                                 padding: EdgeInsets.symmetric(
                                     vertical: 5, horizontal: 15),
-                                // padding: EdgeInsets.all(0),
-                                // crossAxisAlignment: CrossAxisAlignment.start,
-                                // constraints: BoxConstraints(),
                                 child: Form(
                                   key: _formKey,
                                   child: TextFormField(
                                     autofocus: true,
-                                    style: TextStyle(color: Colors.red),
-                                    // // decoration: InputDecoration(hintText: "Username"),
-
                                     decoration: InputDecoration(
-                                      // border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.red)),
                                       errorStyle: TextStyle(height: 0),
                                       enabledBorder: UnderlineInputBorder(
                                           borderSide: BorderSide(
@@ -148,7 +139,6 @@ class _NewLocationDialogState extends State<NewLocationDialog> {
                                               BorderSide(color: Colors.red)),
                                       contentPadding: EdgeInsets.symmetric(
                                           vertical: 10, horizontal: 5),
-                                      // errorBorder:
                                     ),
                                     onChanged: (val) {
                                       setState(() {

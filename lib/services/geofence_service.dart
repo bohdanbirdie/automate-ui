@@ -21,6 +21,7 @@ class GeofenceService {
           distanceFilter: 10.0,
           geofenceInitialTriggerEntry: false,
           stopOnTerminate: false,
+          
           disableElasticity: true,
           geofenceModeHighAccuracy: true,
           startOnBoot: true,

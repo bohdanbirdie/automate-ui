@@ -178,7 +178,6 @@ ZonesState zonesReducer(ZonesState state, action) {
           activeMarkerUiId: state.activeMarkerUiId);
 
     case SaveZoneSuccess:
-      // TODO: update ID from the response
       Map<String, ZoneModel> zones = state.zones;
       zones[action.zone.uiId] = action.zone;
 
