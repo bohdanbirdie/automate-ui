@@ -218,6 +218,7 @@ class ZonesMapPageState extends State<ZonesMapPage>
               final ZoneModel item = zones[index];
               return ListTile(
                 title: Text(item.identifier),
+                subtitle: Text('Long press to open on the map'),
                 trailing: Icon(Icons.keyboard_arrow_right),
                 onTap: () {
                   // do something

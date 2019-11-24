@@ -33,7 +33,6 @@ class EventsPage extends StatelessWidget {
               final Event item = viewModel.events[index];
               return ListTile(
                 title: Text(item.name),
-                trailing: Icon(Icons.keyboard_arrow_right),
               );
             }),
       );

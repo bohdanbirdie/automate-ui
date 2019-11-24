@@ -2,6 +2,7 @@ import 'package:automate_ui/store/automations/automation_model.dart';
 import 'package:automate_ui/store/events/event_model.dart';
 import 'package:automate_ui/store/root_reducer.dart';
 import 'package:automate_ui/store/zones/zone_model.dart';
+import 'package:automate_ui/widgets/title_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
@@ -15,13 +16,6 @@ class ViewAutomationPage extends StatefulWidget {
 }
 
 class _ViewAutomationPageState extends State<ViewAutomationPage> {
-  Widget _renderTitle(String text) {
-    return Text(
-      text,
-      style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500),
-    );
-  }
-
   Widget _renderZoneTile(ZoneModel zone, _ViewModel _viewModel) {
     return Column(
       children: <Widget>[
@@ -102,7 +96,7 @@ class _ViewAutomationPageState extends State<ViewAutomationPage> {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          _renderTitle("Description"),
+                          new TitleText(text: "Description"),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             child: Text(viewModel.automation.description),
@@ -115,7 +109,7 @@ class _ViewAutomationPageState extends State<ViewAutomationPage> {
                                 SizedBox(
                                   height: 40,
                                 ),
-                                _renderTitle("Zones"),
+                                new TitleText(text: "Zones"),
                                 _renderList<ZoneModel>(viewModel.zones,
                                     _renderZoneTile, viewModel),
                               ],
@@ -129,7 +123,7 @@ class _ViewAutomationPageState extends State<ViewAutomationPage> {
                                 SizedBox(
                                   height: 40,
                                 ),
-                                _renderTitle("Events"),
+                                new TitleText(text: "Events"),
                                 _renderList<Event>(viewModel.events,
                                     _renderEventTile, viewModel),
                               ],

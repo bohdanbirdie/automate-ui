@@ -1,6 +1,8 @@
 PODS:
   - background_fetch (0.1.1):
     - Flutter
+  - clipboard_manager (0.0.3):
+    - Flutter
   - CocoaLumberjack (3.6.0):
     - CocoaLumberjack/Core (= 3.6.0)
   - CocoaLumberjack/Core (3.6.0)
@@ -33,6 +35,7 @@ PODS:
 
 DEPENDENCIES:
   - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
+  - clipboard_manager (from `.symlinks/plugins/clipboard_manager/ios`)
   - connectivity (from `.symlinks/plugins/connectivity/ios`)
   - device_info (from `.symlinks/plugins/device_info/ios`)
   - Flutter (from `.symlinks/flutter/ios`)
@@ -52,6 +55,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   background_fetch:
     :path: ".symlinks/plugins/background_fetch/ios"
+  clipboard_manager:
+    :path: ".symlinks/plugins/clipboard_manager/ios"
   connectivity:
     :path: ".symlinks/plugins/connectivity/ios"
   device_info:
@@ -73,6 +78,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   background_fetch: 385552e57d3bde2c7a3abd6b1edc76b87823b6c4
+  clipboard_manager: f4800834e62cc26b1cc4e0a92a35cd452dd8b827
   CocoaLumberjack: 78b0c238666f4f58db069738ec176f4519557516
   connectivity: 6e94255659cc86dcbef1d452ad3e0491bb1b3e75
   device_info: cbf09d2ec12aa7110e0b09fabe54b5bd6c8efe74
